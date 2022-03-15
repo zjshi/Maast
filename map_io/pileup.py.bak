@@ -1,0 +1,169 @@
+import csv, gzip, os, sys
+from operator import itemgetter
+
+class Pileup:
+	def __init__(self, row):
+		self.chrom = row[0]
+		self.pos = int(row[1])
+		self.ref_allele = row[2].upper()
+		self.pileup = row[4]
+		self.compute_counts()
+
+	def compute_counts(self):
+		""" get counts of 4 alleles """
+		# For format specs, see: http://www.htslib.org/doc/samtools.html
+		self.index = 0 # pointer to current position in pileup string
+		self.length = len(self.pileup)
+		self.counts = {'A':0,'G':0,'C':0,'T':0,'N':0}
+		while self.index < self.length:
+			if self.pileup[self.index] in ['$', '*']:
+				# $ denotes end of read segment, * denotes deletion
+				self.index += 1
+			elif self.pileup[self.index] == '^':
+				# skip two characters when encountering '^' as it indicates
+				#   a read start mark and the read mapping quality
+				self.index += 2
+			elif self.pileup[self.index] in ['+', '-']:
+				# skip indels
+				self.index += ( 2 + int(self.pileup[self.index+1]) )
+			elif self.pileup[self.index] in ['.', ',']:
+				# reference base
+				self.counts[self.ref_allele] += 1
+				self.index += 1
+			else:
+				# non-reference base
+				self.counts[self.pileup[self.index].upper()] += 1
+				self.index += 1
+
+	def allele_string(self):
+		""" format allele counts """
+		return ','.join([str(self.counts[_]) for _ in list('ATCG')])
+
+class GenomicSite:
+	def __init__(self, chrom, pos, pileups, parsers):
+		self.chrom = chrom
+		self.pos = pos
+		self.counts = {}
+		self.pooled_counts = {'A':0, 'T':0, 'G':0, 'C':0}
+		self.pooled_depth = 0
+		self.present_samples = 0
+		self.total_samples = len(self.pooled_counts)
+		self.fetch_counts(pileups, parsers)
+		self.pool_counts()
+		self.count_present()
+		self.call_snp()
+		self.sample_ids = self.counts.keys()
+		self.allele_freqs = self.genotype()
+
+	def fetch_counts(self, pileups, parsers):
+		""" Store per-sample allele counts
+
+		Args:
+			pileups:	dic; key=sample_id, value=Pileup object
+			parsers:	dic; key=sample_id, value=generator
+		"""
+		for sample_id, pileup in pileups.items():
+			if (self.chrom == pileup.chrom
+					and self.pos == pileup.pos):
+				# non-zero depth
+				self.counts[sample_id] = pileup.counts
+				pileups[sample_id] = next(parsers[sample_id])
+			else:
+				# zero depth
+				self.counts[sample_id] = {'A':0,'G':0,'C':0,'T':0,'N':0}
+
+	def pool_counts(self):
+		""" Pool read-counts to 4 alleles """
+		for counts in self.counts.values():
+			for allele in ['A', 'T', 'G', 'C']:
+				self.pooled_counts[allele] += counts[allele]
+				self.pooled_depth += counts[allele]
+
+	def count_present(self):
+		""" Count number of samples with non-zero depth at site """
+		for counts in self.counts.values():
+			if sum(counts.values()) > 0:
+				self.present_samples += 1
+		self.prev = self.present_samples/float(self.total_samples)
+
+	def call_snp(self):
+		""" Identify major and minor alleles """
+		counts = sorted(list(self.pooled_counts.items()), key=itemgetter(1), reverse=True)
+		if self.pooled_depth == 0:
+			self.cons_allele = 'N'
+			self.cons_count = 0
+			self.cons_freq = 0.0
+			self.alt_allele = 'N'
+			self.alt_count = 0
+			self.alt_freq = 0.0
+		else:
+			self.cons_allele, self.cons_count = counts.pop(0)
+			self.cons_freq = self.cons_count/float(self.pooled_depth)
+			if len(counts) > 0:
+				self.alt_allele, self.alt_count = counts[0]
+				self.alt_freq = self.alt_count/float(self.pooled_depth)
+			else:
+				self.alt_freq = 0.0
+
+	def genotype(self, min_depth=1):
+		""" Fetch list of alternate allele frequencies """
+		freqs = []
+		for sample_id in self.sample_ids:
+			if self.alt_allele == 'N':
+				freqs.append(0)
+			else:
+				count_ref = self.counts[sample_id][self.cons_allele]
+				count_alt = self.counts[sample_id][self.alt_allele]
+				if (count_ref + count_alt) >= min_depth:
+					freq = count_alt / float(count_ref + count_alt)
+					freqs.append('%s' % float('%.3g' % freq))
+				else:
+					freqs.append('.')
+		return freqs
+
+def parse(pileup_path):
+	pileup_file = open(pileup_path)
+	fnames =['chrom', 'pos', 'ref_allele', 'depth', 'pileup', 'qualities']
+	pileup_reader = csv.reader(pileup_file, delimiter='\t')
+	for row in pileup_reader:
+		yield Pileup(row)
+	pileup_file.close()
+
+def to_tsv(pileup_path, tsv_path):
+	out_file = open(tsv_path, 'w')
+	header = ['chrom', 'pos', 'ref_allele', 'A', 'T', 'C', 'G']
+	out_file.write('\t'.join(header)+'\n')
+	for p in parse(pileup_path):
+		values = [p.chrom, p.pos, p.ref_allele,
+			      p.counts['A'], p.counts['T'], p.counts['G'], p.counts['C']]
+		out_file.write('\t'.join([str(x) for x in values])+'\n')
+	out_file.close()
+
+def iterate_sites(pileup_dir, map_genome):
+
+	# open pileups
+	parsers, pileups = {}, {}
+	ext = '.pileup'
+	for pileup_file in os.listdir(pileup_dir):
+		sample_id = pileup_file[0:-len(ext)]
+		pileup_path = os.path.join(pileup_dir, pileup_file)
+		parsers[sample_id] = parse(pileup_path)
+		pileups[sample_id] = next(parsers[sample_id])
+
+	# fetch contig lengths
+	contig_lengths = []
+	records = open(map_genome).read().split('>')[1:]
+	for record in records:
+		contig_id = record.split('\n', 1)[0].split()[0]
+		contig_seq = record.split('\n', 1)[1].replace('\n', '')
+		contig_lengths.append([contig_id, len(contig_seq)])
+	contig_lengths = sorted(contig_lengths)
+
+	# loop over contigs
+	for chrom, length in contig_lengths:
+
+		# loop over sites
+		for pos in range(1, length+1):
+
+			# yield GenomicSite
+			yield GenomicSite(chrom, pos, pileups, parsers)

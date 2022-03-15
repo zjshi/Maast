@@ -1,0 +1,23 @@
+#!/bin/bash
+
+Version()
+{
+   # Display version 
+   echo "Maast version 1.0.1"
+}
+
+# automatic path exporting
+REALME=`realpath $0`
+MAAST=`dirname ${REALME}`
+EBSROOT=`dirname ${MAAST}`
+export PATH=$PATH:${MAAST}/bin/
+export PYTHONPATH=$PYTHONPATH:${MAAST}
+
+# controller calling functional modules
+if [ "$1" = "-v" ] || [ "$1" = "--version" ] || [ "$1" = "version" ] || [ "$1" = "-version" ]; then
+	Version	
+elif [ "$1" = "-h" ] || [ "$1" = "-help" ] || [ "$1" = "help" ] || [ "$1" = "--help" ]; then
+	Maast.py -h	
+else
+	Maast.py $*
+fi
