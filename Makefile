@@ -1,5 +1,5 @@
 all: callm_db_build callm_db_val iso_gt_mtar
-	@echo "CallM build completed."
+	@echo "Maast build completed."
 
 callm_db_build:  ./src/callm_db_build.cpp Makefile
 	g++ -std=c++11 ./src/callm_db_build.cpp -o ./bin/callm_db_build -O3 -lpthread

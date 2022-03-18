@@ -1,7 +1,7 @@
-// GTPro Query Engine, Compressor, and Indexer.
+// iso_gt_mtar Query Engine, Compressor, and Indexer.
 //
 // For license and copyright information, please see
-// https://github.com/zjshi/gt-pro2.0/blob/master/LICENSE
+// https://github.com/zjshi/Maast/blob/master/LICENSE
 //
 // C++11 code formatted with
 //
@@ -295,10 +295,8 @@ int decompressor(const char *inpath) {
 			if (0 == strcmp(comp[2], "untested")) {
 				comp[2] = test_compressor(comp[1]) ? "tested_and_works" : "tested_and_does_not_work";
 			}
-			if (required == -1) { // remember just the first one as it's preferred
+			if (required == -1 && 0 == strcmp(comp[2], "tested_and_works")) { // remember just the first one as it's preferred
 				required = i;
-			}
-			if (0 == strcmp(comp[2], "tested_and_works")) {
 				return required;
 			}
 		}
@@ -1376,9 +1374,9 @@ bool kmer_lookup(uint64_t *lmer_index, uint64_t *mmers, uint64_t *snps, int n_in
 }
 
 void display_usage(char *fname) {
-	cerr << "GTPro version 1.0.0\n"
+	cerr << "iso_gt_mar version 1.0.0\n"
 		<< "For copyright and licensing information, please see\n"
-		<< "https://github.com/zjshi/gt-pro/blob/master/LICENSE\n"
+		<< "https://github.com/zjshi/Maast/blob/master/LICENSE\n"
 		<< "\n"
 		<< "ARGUMENTS: \n"
 		<< "  -d <sckmerdb_path: string> \n"
@@ -1407,14 +1405,14 @@ void display_usage(char *fname) {
 		<< "\n"
 		<< "USAGE EXAMPLES\n"
 		<< "\n"
-		<< "  The following two methods of running gtpro produce equivalent results.\n"
+		<< "  The following two methods of running iso_gt_mtar produce equivalent results.\n"
 		<< "\n"
 		<< "  Method 1:\n"
-		<< "    gt_pro -d /path/to/db1234 -C /path/to/input test576/r1.fastq.lz4 test576/r2.fq.bz2\n"
+		<< "    iso_gt_mtar -d /path/to/db1234 -C /path/to/input test576/r1.fastq.lz4 test576/r2.fq.bz2\n"
 		<< "\n"
 		<< "  Method 2:\n"
-		<< "    lz4 -dc /path/to/input/test576/r1.fastq.lz4 | gt_pro -d /path/to/db123 | lz4 -c > test576_r1__gtpro__db1234.tsv.lz4\n"
-		<< "    lbzip2 -dc /path/to/input/test576/r2.fq.bz2 | gt_pro -d /path/to/db123 | lbzip2 -c > "
+		<< "    lz4 -dc /path/to/input/test576/r1.fastq.lz4 | iso_gt_mtar -d /path/to/db123 | lz4 -c > test576_r1__gtpro__db1234.tsv.lz4\n"
+		<< "    lbzip2 -dc /path/to/input/test576/r2.fq.bz2 | iso_gt_mtar -d /path/to/db123 | lbzip2 -c > "
 		"test576_r2__gtpro__db1234.tsv.bz2\n"
 		<< "\n"
 		<< "  The primary difference is in performance and error handling.  Method 1 will create an\n"

@@ -9,7 +9,7 @@ from operator import itemgetter
 from Bio import SeqIO
 
 from snps_io import id_genome_clusters, id_centroid
-from snps_io import vcf_io, gen_msa, align_assembly
+from snps_io import vcf_io, concat_alleles, gen_msa, align_assembly
 
 from db_io import build_db
 
@@ -28,13 +28,13 @@ def get_data_type():
 		print('	msa                use input multiple genome alignment to call core-genome SNPs')
 		print('	db                 build kmer database targeting snps')
 		print('	genotype           call core-genome SNPs for single genomes and isolate sequencing data')
-		# print('	tree               build SNP tree using identified genotypes')
+		print('	tree               build SNP tree using identified genotypes')
 		print('')
 		print("use '%s <module> -h' for usage on a specific command" % cmd)
 		print('')
 		quit()
-	elif sys.argv[1] not in ['end_to_end', 'genomes', 'msa', 'db', 'genotype']:
-		sys.exit("\nError: invalid subcommand\n\nSupported subcommand: genomes, msa, db, genotype, end_to_end\n")
+	elif sys.argv[1] not in ['end_to_end', 'genomes', 'msa', 'db', 'genotype', 'tree']:
+		sys.exit("\nError: invalid subcommand\n\nSupported subcommand: genomes, msa, db, genotype, end_to_end, tree\n")
 	else:
 		return sys.argv[1]
 
@@ -62,8 +62,6 @@ def parse_args():
 	if data_type in ['genomes']: 
 		io.add_argument('--fna-dir', type=str, metavar='PATH', required=True,
 			help = """Path to directory of genomes in FASTA format""")
-		io.add_argument('--skip-align', action='store_true', default=False,
-			help = """skip whole genome sequence or short read alignment, only applicable when alignment has already been done""")
 	
 	if data_type in ['msa']:
 		io.add_argument('--msa-path', type=str, metavar='PATH', required=True,
@@ -74,6 +72,8 @@ def parse_args():
 	if data_type in ['genomes', 'msa', 'end_to_end']:
 		io.add_argument('--rep-fna', type=str, metavar='PATH', default=None,
 			help = """Path to the reference genome serving as the template for whole genome alignment. If provided, Maast will not identify and use centroid genome for reference""")
+		io.add_argument('--skip-align', action='store_true', default=False,
+			help = """skip whole genome sequence or short read alignment, only applicable when alignment has already been done""")
 		io.add_argument('--has-completeness', action='store_true', default=False,
 			help = """Toggle for specifying completeness for supplied genomes sequenes. If toggled on, it requries to supply either --completeness or --completeness-list""")
 		io.add_argument('--completeness', type=float, metavar='FLOAT', default=None,
@@ -92,8 +92,6 @@ def parse_args():
 			help = """calling SNPs by genomic segment, option for memory saving""")
 
 	if data_type in ['genomes', 'end_to_end']:
-		io.add_argument('--subset-list', type=str, metavar='PATH', default=None, 
-			help = """Path to file contains the names of the fullset or subset of the files in the input directory. Files not in the list will not be included for snp calling""")
 		prep = parser.add_argument_group('preprocessing')
 		prep.add_argument('--keep-redundancy', action='store_true', default=False,
 			help="""If toggled on, Maast will skip redundancy removal and move on with all input genomes""")
@@ -191,7 +189,34 @@ def parse_args():
 			help = """Alignment speed/sensitivity (sensitive)""")
 		align.add_argument('--max-reads', type=int, metavar='INT',
 			help = """Maximum # reads to use from each FASTQ file (use all)""")
-	
+
+	if data_type in ['genomes', 'genotype', 'end_to_end']:
+		io.add_argument('--subset-list', type=str, metavar='PATH', default=None, 
+			help = """Path to file contains the names of the fullset or subset of the files in the input directory. Files not in the list will not be included for snp calling""")
+
+	if data_type in ['tree']:	
+		tree_io = parser.add_argument_group('tree_io')
+		tree_io.add_argument('--input-list', type=str, dest='input_list', required=True,
+			help="""A list of input pairs. Each pair per row contains a path to a genotype result file generated from Maast genotype command and a unique name of the file.
+                    The path and name must be separated by a tab.
+                    Example
+                    /file/path/1	name1
+                    /file/path/2	name2
+                    /file/path/3    name3
+                    ...""")
+		tree_io.add_argument('--min-sites', type=int, dest='min_sites_per_sample', default=1000,
+			help="""Minimum SNP sites. Any allele sequence with a number of non-empty sites lower than this value will not be included.""")
+		tree_io.add_argument('--max-gap-ratio', type=float, dest='max_gap_ratio', default=0.5,
+			help="""Maximum ratio of gaps. Any allele sequence with a ratio of gap higher than this value will not be included.""")
+		tree_io.add_argument('--min-site-prev', type=float, dest='min_site_prev', default=0.3,
+			help="""Minimum site prevalence. Any site with an actual allele presents in a fraction of sequences lower than this value will not be included.""")
+		tree_io.add_argument('--min-MAF', type=float, dest='min_maf', default=0.01,
+			help="""Minimum allele frequency. Any site with MAF lower than this value will not be included.""")
+		tree_io.add_argument('--min-MAC', type=float, dest='min_mac', default=1,
+			help="""Minimum allele count. Any site with MAC lower than this value will not be included.""")
+		tree_io.add_argument('--min-depth', type=float, dest='min_depth', default=1,
+			help="""Minimum read depth. Any site supported by a number of reads lower than this value will not be included. This option is only for genotypes identified from sequencing reads. Default value is 1 and any value >1 will effectively exclude all whole genome assemblies from analysis. Caution is advised.""")
+
 	misc = parser.add_argument_group('misc')
 	misc.add_argument("-h", "--help", action="help",
 		help="""Show this help message and exit""")
@@ -308,7 +333,7 @@ def locate_fpaths(args, in_dir, rep_fna=None, subset_list=None):
 					cur_size = fstats.st_size
 					lg_fpath = fpath
 			else:
-				sys.stderr.write("skip {}: unknown input type\n".format(fpath))	
+				sys.stderr.write("skip {}: not fasta format\n".format(fpath))	
 
 		else:
 			sys.stderr.write("skip {}\n".format(f))
@@ -609,6 +634,7 @@ def id_tag_ref(args):
 	print(centroid)
 
 	args['tag_ref'] = centroid
+	args['rep_fna'] = centroid
 
 def run_kmerset_validate(args):
 	assert os.path.exists(args['kmer_set'])
@@ -701,8 +727,12 @@ def read_input_dir(args, in_dir, subset_list=None):
 	for f in os.listdir(in_dir):
 		if f in subset_map:
 			fpath = in_dir.rstrip('/')+'/'+f
-			assert os.path.isfile(fpath)
+			print(fpath)
 			
+			if os.path.isdir(fpath):
+				continue
+
+			assert os.path.isfile(fpath)
 			ftype = id_input_type(fpath)
 
 			if ftype == "unknown":
@@ -788,6 +818,10 @@ def genotype_single_genomes(args):
 	try: os.makedirs(args['genotype_dir'])
 	except: pass
 
+	args['gt_results_dir'] = args['out_dir']+'/gt_results'
+	try: os.makedirs(args['gt_results_dir'])
+	except: pass
+
 	arg_list = []
 	arg_list_gt = []
 	rep_id = ref_fpath.split('/')[-1].replace('.fna', '')
@@ -806,7 +840,7 @@ def genotype_single_genomes(args):
 
 		coord_path = out_dir + '/coords'
 		snp_path = out_dir + '/snps'
-		output = args['out_dir'] + '/' + genome_id + ".tsv"
+		output = args['gt_results_dir'] + '/' + genome_id + ".tsv"
 		arg_list_gt.append([genos, ref, coord_path, snp_path, output])
 
 	print("[paired alignment]: done")
@@ -893,7 +927,7 @@ def run_single_fasta_gt(genos, ref, coord_path, snp_path, output):
 		gid = geno[2]
 		allele_ma = geno[3]
 		allele_mi = geno[4]
-
+		
 		if chrom not in coord_map:
 			continue
 
@@ -921,6 +955,10 @@ def genotype_reads(args):
 
 	args['genotype_dir'] = args['out_dir']+'/temp/genotype'
 	try: os.makedirs(args['genotype_dir'])
+	except: pass
+
+	args['gt_results_dir'] = args['out_dir']+'/gt_results'
+	try: os.makedirs(args['gt_results_dir'])
 	except: pass
 
 	gt_paths = []
@@ -987,7 +1025,7 @@ def genotype_reads(args):
 	arg_list = []
 	for gt_path in gt_paths + merge_paths:
 		fq_id = '.'.join(gt_path.split('/')[-1].split('.')[:-1])
-		output = args['out_dir'] + '/' + fq_id + '.parse.tsv'
+		output = args['gt_results_dir'] + '/' + fq_id + '.reads.tsv'
 		arg_list.append([args['vcf'], gt_path, output])
 
 	parallel(run_parse_single, arg_list, args['threads'])			
@@ -1190,18 +1228,15 @@ def build_db_main(args):
 		locate_fpaths(args, args['fna_dir'])
 
 	genome_seq = build_db.open_genome_seq(genome_path)
-	snps = build_db.open_vcf_file(vcf_path)
+	#snps = build_db.open_vcf_file(vcf_path)
 
 	coords = None
 	if coords_path is not None:
 		coords = build_db.read_coords(coords_path)
 
-	snp_gb_pos, snp_alts = [], []
-
-	snp_gb_pos = [int(snp.ID) for snp in snps]
-	#snp_alts = [str(snp.ALT[0]) for snp in snps]
-	snp_alleles = [[str(snp.REF), str(snp.ALT[0])] for snp in snps]
-
+	snp_gb_pos, snp_alleles = build_db.open_vcf_file_local(vcf_path)
+	#snp_gb_pos = [int(snp.ID) for snp in snps]
+	#snp_alleles = [[str(snp.REF), str(snp.ALT[0])] for snp in snps]
 	#snp_kmers = fetch_snp_kmers(genome_seq, snp_gb_pos, snp_alleles, k_size, k_type, coords)
 
 	genome_seqs = build_db.load_msa(args['msa'])
@@ -1231,16 +1266,14 @@ def genotype_main(args):
 		genotype_reads(args)
 
 def tree_main(args):
-	return True
+	concat_alleles.concat_allele_tree(args)
 
 def end2end_main(args):
-	read_input_dir(args, args['in_dir'], args['subset_list'])
-	
 	try: os.makedirs(args['out_dir'])
 	except: pass
 
+	args['fna_dir'] = args['in_dir']
 	locate_fpaths(args, args['in_dir'], args['rep_fna'], args['subset_list'])
-
 	call_snps_main(args)
 
 	args['kmer_size'] = 31
@@ -1252,6 +1285,7 @@ def end2end_main(args):
 
 	build_db_main(args)
 
+	read_input_dir(args, args['in_dir'], args['subset_list'])
 	if len(args["fna_paths"]) > 0:
 		genotype_single_genomes(args)
 	

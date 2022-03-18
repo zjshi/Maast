@@ -334,6 +334,49 @@ def open_vcf_file(fpath):
 
 	return vcf_snps
 
+def open_vcf_file_local(fpath):
+	"""
+	* ``Record.CHROM``; string
+	* ``Record.POS``; int
+	* ``Record.ID``; None
+	* ``Record.REF``; string
+	* ``Record.ALT``; list
+	* ``Record.QUAL``; None
+	* ``Record.FILTER``; list
+	* ``Record.INFO``; dictionary
+
+	additional attributes:
+	* ``Record.FORMAT``; string
+	* ``Record.samples``; list
+	* ``Record.genotype``; object
+	"""
+
+	print("[load] loading core snps from {}".format(fpath))
+
+	snp_gb_pos = [] 
+	snp_alleles = []
+	with open(fpath, 'r') as fh:
+		for l in fh:
+			if l[0] == "#":
+				continue
+			else:
+				values = l.rstrip().split('\t')[:5]
+
+				chrom = values[0]
+				pos_r = int(values[1])
+				gid = values[2]
+				allele_ma = values[3]
+				allele_mi = values[4]
+
+				if len(allele_mi) > 1:
+					continue
+				snp_gb_pos.append(int(gid))
+				snp_alleles.append([allele_ma, allele_mi])
+	print("	a total of {} core snps was found\n".format(str(len(snp_gb_pos))))
+
+	return snp_gb_pos, snp_alleles
+
+
 def open_genome_seq(genome_path):
 	print("[load] loading core-genome consensus sequence from {}".format(genome_path))
 
