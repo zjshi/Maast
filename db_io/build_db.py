@@ -6,7 +6,6 @@ import multiprocessing as mp
 
 from time import time, sleep
 
-import vcf
 from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
 
@@ -307,32 +306,6 @@ def read_coords(fpath):
 
 	print("	a total of {} divisions was found\n".format(str(len(coords))))
 	return coords
-
-def open_vcf_file(fpath):
-	"""
-	* ``Record.CHROM``; string
-	* ``Record.POS``; int
-	* ``Record.ID``; None
-	* ``Record.REF``; string
-	* ``Record.ALT``; list
-	* ``Record.QUAL``; None
-	* ``Record.FILTER``; list
-	* ``Record.INFO``; dictionary
-
-	additional attributes:
-	* ``Record.FORMAT``; string
-	* ``Record.samples``; list
-	* ``Record.genotype``; object
-	"""
-
-	print("[load] loading core snps from {}".format(fpath))
-
-	vcf_reader = vcf.Reader(open(fpath, 'r'))
-	vcf_snps = [record for record in vcf_reader if len(record.ALT) == 1]
-
-	print("	a total of {} core snps was found\n".format(str(len(vcf_snps))))
-
-	return vcf_snps
 
 def open_vcf_file_local(fpath):
 	"""
