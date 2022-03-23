@@ -25,7 +25,6 @@ def get_data_type():
 		print('modules:')
 		print('	end_to_end         Run full Maast pipeline from begining to end')
 		print('	genomes            perform multiple alignment of genomes to call core-genome SNPs')
-		print('	msa                use input multiple genome alignment to call core-genome SNPs')
 		print('	db                 build kmer database targeting snps')
 		print('	genotype           call core-genome SNPs for single genomes and isolate sequencing data')
 		print('	tree               build SNP tree using identified genotypes')
@@ -33,8 +32,8 @@ def get_data_type():
 		print("use '%s <module> -h' for usage on a specific command" % cmd)
 		print('')
 		quit()
-	elif sys.argv[1] not in ['end_to_end', 'genomes', 'msa', 'db', 'genotype', 'tree']:
-		sys.exit("\nError: invalid subcommand\n\nSupported subcommand: genomes, msa, db, genotype, end_to_end, tree\n")
+	elif sys.argv[1] not in ['end_to_end', 'genomes', 'db', 'genotype', 'tree']:
+		sys.exit("\nError: invalid subcommand\n\nSupported subcommand: genomes, db, genotype, end_to_end, tree\n")
 	else:
 		return sys.argv[1]
 
@@ -53,93 +52,87 @@ def parse_args():
 	if data_type == 'end_to_end':
 		end2end_input = parser.add_argument_group('end2end_input')
 		end2end_input.add_argument('--in-dir', type=str, metavar='PATH',required=True,
-			help = """Path to directory of raw-read-files in FASTQ format (.fastq or .fq; gzipped or not) or whole-genome sequences in FASTA format (.fna, .fa, .fsa or .fasta)""")
+			help = """Path to directory of raw-read-files in FASTQ format (.fastq or .fq; gzipped or not) or whole-genome sequences in FASTA format (.fna, .fa, .fsa or .fasta). (Required)""")
 
 	io = parser.add_argument_group('input/output')
 	io.add_argument('--out-dir', type=str, metavar='PATH', required=True,
-		help="""Directory to store output""")
+		help="""Directory to store output (required)""")
 
 	if data_type in ['genomes']: 
 		io.add_argument('--fna-dir', type=str, metavar='PATH', required=True,
-			help = """Path to directory of genomes in FASTA format""")
+			help = """Path to directory of genomes in FASTA format (required)""")
 	
-	if data_type in ['msa']:
-		io.add_argument('--msa-path', type=str, metavar='PATH', required=True,
-			help = """Path to multiple-genome alignment""")
-		io.add_argument('--msa-type', choices=['xmfa-parsnp', 'xmfa-mummer4'], required=True,
-			help = """File format of multiple-genome alignment""")
-
-	if data_type in ['genomes', 'msa', 'end_to_end']:
+	if data_type in ['genomes', 'end_to_end']:
 		io.add_argument('--rep-fna', type=str, metavar='PATH', default=None,
-			help = """Path to the reference genome serving as the template for whole genome alignment. If provided, Maast will not identify and use centroid genome for reference""")
+			help = """Path to the reference genome serving as the template for whole genome alignment. If provided, Maast will not identify and use centroid genome for reference (default None)""")
 		io.add_argument('--skip-align', action='store_true', default=False,
-			help = """skip whole genome sequence or short read alignment, only applicable when alignment has already been done""")
+			help = """skip whole genome sequence or short read alignment, only applicable when alignment has already been done (default False)""")
 		io.add_argument('--has-completeness', action='store_true', default=False,
-			help = """Toggle for specifying completeness for supplied genomes sequenes. If toggled on, it requries to supply either --completeness or --completeness-list""")
+			help = """Toggle for specifying completeness for supplied genomes sequenes. If toggled on, it requries to supply either --completeness or --completeness-list (default False)""")
 		io.add_argument('--completeness', type=float, metavar='FLOAT', default=None,
-			help = """Single completeness value for all genomes sequenes (i.e. all genomes have the same completeness)""")
+			help = """Single completeness value for all genomes sequenes (i.e. all genomes have the same completeness) (default False)""")
 		io.add_argument('--completeness-list', type=str, metavar='PATH', default=None,
-			help = """Path to list of pairs of genome file name and completeness value, separated by tab character. (note: genome file names should have no duplicates, and should cover all files specified in --fna-dir)""")
+			help = """Path to list of pairs of genome file name and completeness value, separated by tab character. (note: genome file names should have no duplicates, and should cover all files specified in --fna-dir) (default None)""")
 		io.add_argument('--missing-ratio', type=float, metavar='FLOAT', default=0.05,
-			help = """Parameter defining the missing ratio of core sites even when completeness is 1""")
+			help = """Parameter defining the missing ratio of core sites even when completeness is 1 (default 0.05)""")
 		io.add_argument('--min-pid', type=float, metavar='FLOAT', default=0,
-			help = """Parameter defining the minimal identity for including each aligned block, [0, 100]""")
+			help = """Parameter defining the minimal identity for including each aligned block, [0, 100] (default 0)""")
 		io.add_argument('--min-aln-len', type=int, metavar='INT', default=10,
-			help = """Parameter defining the minimal length for including each aligned block""")
+			help = """Parameter defining the minimal length for including each aligned block (default 10)""")
 		io.add_argument('--max-pid-delta', type=float, metavar='FLOAT', default=0.1,
-			help = """Parameter defining the maximum identity gap between identity of each aligned block and whole-genome ANI, all alignments with identity less than ANI * (1 - delta) will be purged, [0, 1]""")
+			help = """Parameter defining the maximum identity gap between identity of each aligned block and whole-genome ANI, all alignments with identity less than ANI * (1 - delta) will be purged, [0, 1] (default 10)""")
 		io.add_argument('--mem', action='store_true', default=False,
-			help = """calling SNPs by genomic segment, option for memory saving""")
+			help = """calling SNPs by genomic segment, option for memory saving (default False)""")
 
 	if data_type in ['genomes', 'end_to_end']:
 		prep = parser.add_argument_group('preprocessing')
 		prep.add_argument('--keep-redundancy', action='store_true', default=False,
-			help="""If toggled on, Maast will skip redundancy removal and move on with all input genomes""")
+			help="""If toggled on, Maast will skip redundancy removal and move on with all input genomes (default=False)""")
 		prep.add_argument('--skip-centroid', action='store_true', default=False,
-			help="""If toggled on, Maast will not attempt to identify and use centroid genome for reference""")
+			help="""If toggled on, Maast will not attempt to identify and use centroid genome for reference (default=False)""")
 		prep.add_argument('--sketch-k', type=int, metavar='INT', default=21,
-			help="""k-mer size for building Mash sketch""")
+			help="""k-mer size for building Mash sketch (default=21)""")
 		prep.add_argument('--sketch-size', type=int, metavar='INT', default=5000,
-			help="""The number of k-mers per Mash sketch""")
+			help="""The number of k-mers per Mash sketch (default=5000)""")
 		prep.add_argument('--precut', type=float, metavar='FLOAT', default=0.05,
-			help="""Limit searches among pair of genomes with distance smaller than the provided value""")
+			help="""Limit searches among pair of genomes with distance smaller than the provided value (default=0.05)""")
 		prep.add_argument('--start-cutoff', type=float, metavar='FLOAT', default=0.02,
-			help="""The cutoff from which Maast will start to search a distance cutoff, which generate the good number of genome clusters and tag genomes based on a given MAF""")
+			help="""The cutoff from which Maast will start to search a distance cutoff, which generate the good number of genome clusters and tag genomes based on a given MAF (default=0.02)""")
 		prep.add_argument('--end-cutoff', type=float, metavar='FLOAT', default=0.0001,
-			help="""Similiar to --start-cutoff, the cutoff at which Maast will end the search for a distance cutoff. This value should be smaller than --start-cutoff""")
+			help="""Similiar to --start-cutoff, the cutoff at which Maast will end the search for a distance cutoff. This value should be smaller than --start-cutoff (default=0.0001)""")
 		prep.add_argument('--range-factor', type=float, metavar='FLOAT', default=1.2,
-			help="""This factor times the minimum number of genomes needed for a given MAF will create the upper bound of a range satisfying the search. It should be larger than 1.""")
+			help="""This factor times the minimum number of genomes needed for a given MAF will create the upper bound of a range satisfying the search. It should be larger than 1 (default=1.2)""")
 
-	if data_type in ['genomes', 'msa', 'end_to_end']:
+	if data_type in ['genomes', 'end_to_end']:
 		snps = parser.add_argument_group('snp-calling')
 		snps.add_argument('--max-sites', type=int, metavar='INT', default=float('inf'),
-			help="""Maximum genomic sites to parse (use all); useful for testing""")
+			help="""Maximum genomic sites to parse (use all); useful for testing (default=inf)""")
 		snps.add_argument('--min-prev', type=float, metavar='FLOAT', default=1.0,
-			help="""Minimum prevalence (1.0)""")
+			help="""Minimum prevalence (default=1.0)""")
 		snps.add_argument('--snp-freq', type=float, metavar='FLOAT', default=0.01,
-			help="""Minimum minor allele frequency for SNP calling (0.01)""")
+			help="""Minimum minor allele frequency for SNP calling (default=0.01)""")
 		snps.add_argument('--max-samples', type=int, metavar='INT', default=float('inf'),
-			help="""Only use a subset of genomes or metagenomes for snp calling""")
+			help="""Only use a subset of genomes or metagenomes for snp calling (default=inf)""")
 
 	if data_type in ['db', 'end_to_end']:
 		db = parser.add_argument_group('db-building')
 	if data_type in ['db']:
 		db.add_argument('--ref-genome', type=str, dest='ref_genome', required=True,
-			help="""Path to reference genome sequence file""")
+			help="""Path to reference genome sequence file (required)""")
 		db.add_argument('--vcf', type=str, dest='vcf', required=True,
-			help="""Path to a vcf file describing core snps/genetic variants called based on multiple sequence alignments""")
+			help="""Path to a vcf file describing core snps/genetic variants called based on multiple sequence alignments (required)""")
 		db.add_argument('--msa', type=str, dest='msa', required=True,
-			help="""Path to multiple sequence alignment file""")
+			help="""Path to multiple sequence alignment file (required)""")
 		db.add_argument('--tag-fna-list', type=str, dest='tag_list', required=True,
-			help="""Path to a list of paths to the tag genomes (FASTA format) which are included in multiple sequence alignment file""")
+			help="""Path to a list of paths to the tag genomes (FASTA format) which are included in multiple sequence alignment file (required)""")
 		db.add_argument('--fna-dir', type=str, dest='fna_dir', default=None,
-			help="""Path to a list of paths to the tag genomes (FASTA format) which are included in multiple sequence alignment file""")
+			help="""Path to a list of paths to the tag genomes (FASTA format) which are included in multiple sequence alignment file (default=None)""")
 		db.add_argument('--coords', type=str, dest='coords', default=None,
-			help="""Path to core genome block coordinate file""")
+			help="""Path to core genome block coordinate file (default=None)""")
 
 	if data_type in ['db', 'end_to_end']:
 		db.add_argument('--genome-name', dest='genome_name', type=str, default='100000',
-			help="""Name of the core-genome corresponding to INPUT""")
+			help="""Name of the core-genome corresponding to INPUT. Should be six digits with the first digit in [1, 9] (default=100000)""")
 		db.add_argument('--overwrite', dest='overwrite', action='store_true', help="""Overwrite existing output files""")
 		db.add_argument('--kmer-type', dest='kmer_type', default='all',
 			choices=['all', 'center'],
@@ -164,20 +157,20 @@ def parse_args():
 
 	if data_type in ['genotype']:
 		genotype_input.add_argument('--in-dir', type=str, metavar='PATH',required=True,
-			help = """Path to directory of raw-read-files in FASTQ format (.fastq or .fq; gzipped or not) or whole-genome sequences in FASTA format (.fna, .fa, .fsa or .fasta)""")
+			help = """Path to directory of raw-read-files in FASTQ format (.fastq or .fq; gzipped or not) or whole-genome sequences in FASTA format (.fna, .fa, .fsa or .fasta) (required)""")
 		genotype_input.add_argument('--ref-genome', type=str, dest='ref_genome', required=True,
-			help="""Path to reference genome sequence file""")
+			help="""Path to reference genome sequence file (required)""")
 		genotype_input.add_argument('--db', type=str, metavar='PATH', dest='kmer_db_path', required=True,
-			help = """Path to directory of raw-read-files in FASTQ format (.fastq or .fq; gzipped or not) or whole-genome sequences in FASTA format (.fna, .fa, .fsa or .fasta)""")
+			help = """Path to directory of raw-read-files in FASTQ format (.fastq or .fq; gzipped or not) or whole-genome sequences in FASTA format (.fna, .fa, .fsa or .fasta) (required)""")
 		genotype_input.add_argument('--vcf', type=str, dest='vcf', required=True,
-			help="""Path to a vcf file describing core snps/genetic variants called based on multiple sequence alignments""")
+			help="""Path to a vcf file describing core snps/genetic variants called based on multiple sequence alignments (required)""")
 		single_genome = parser.add_argument_group('genome-genotyping')
 		single_genome.add_argument('--min-pid', type=float, metavar='FLOAT', default=0,
-			help = """Parameter defining the minimal identity for including each aligned block, [0, 100]""")
+			help = """Parameter defining the minimal identity for including each aligned block, [0, 100] (default=0)""")
 		single_genome.add_argument('--min-aln-len', type=int, metavar='INT', default=10,
-			help = """Parameter defining the minimal length for including each aligned block""")
+			help = """Parameter defining the minimal length for including each aligned block (default=10)""")
 		single_genome.add_argument('--max-pid-delta', type=float, metavar='FLOAT', default=0.1,
-			help = """Parameter defining the maximum identity gap between identity of each aligned block and whole-genome ANI, all alignments with identity less than ANI * (1 - delta) will be purged, [0, 1]""")
+			help = """Parameter defining the maximum identity gap between identity of each aligned block and whole-genome ANI, all alignments with identity less than ANI * (1 - delta) will be purged, [0, 1] (default=0.1)""")
 
 	if data_type in ['genotype', 'end_to_end']:
 		genotype_input.add_argument('--merge-pairs', action='store_true', default=False,
@@ -186,18 +179,18 @@ def parse_args():
 		align = parser.add_argument_group('reads-genotyping')
 		align.add_argument('--mode', default='very-sensitive',
 			choices=['very-fast', 'fast', 'sensitive', 'very-sensitive'],
-			help = """Alignment speed/sensitivity (sensitive)""")
+			help = """Alignment speed/sensitivity (default=very-sensitive)""")
 		align.add_argument('--max-reads', type=int, metavar='INT',
-			help = """Maximum # reads to use from each FASTQ file (use all)""")
+			help = """Maximum # reads to use from each FASTQ file (default=None; use all)""")
 
 	if data_type in ['genomes', 'genotype', 'end_to_end']:
 		io.add_argument('--subset-list', type=str, metavar='PATH', default=None, 
-			help = """Path to file contains the names of the fullset or subset of the files in the input directory. Files not in the list will not be included for snp calling""")
+			help = """Path to file contains the names of the fullset or subset of the files in the input directory. Files not in the list will not be included for snp calling (default=None; use all)""")
 
 	if data_type in ['tree']:	
 		tree_io = parser.add_argument_group('tree_io')
 		tree_io.add_argument('--input-list', type=str, dest='input_list', required=True,
-			help="""A list of input pairs. Each pair per row contains a path to a genotype result file generated from Maast genotype command and a unique name of the file.
+			help="""A list of input pairs. Each pair per row contains a path to a genotype result file generated from Maast genotype command and a unique name of the file. (required)
                     The path and name must be separated by a tab.
                     Example
                     /file/path/1	name1
@@ -205,23 +198,23 @@ def parse_args():
                     /file/path/3    name3
                     ...""")
 		tree_io.add_argument('--min-sites', type=int, dest='min_sites_per_sample', default=1000,
-			help="""Minimum SNP sites. Any allele sequence with a number of non-empty sites lower than this value will not be included.""")
+			help="""Minimum SNP sites. Any allele sequence with a number of non-empty sites lower than this value will not be included (default=1000)""")
 		tree_io.add_argument('--max-gap-ratio', type=float, dest='max_gap_ratio', default=0.5,
-			help="""Maximum ratio of gaps. Any allele sequence with a ratio of gap higher than this value will not be included.""")
-		tree_io.add_argument('--min-site-prev', type=float, dest='min_site_prev', default=0.3,
-			help="""Minimum site prevalence. Any site with an actual allele presents in a fraction of sequences lower than this value will not be included.""")
+			help="""Maximum ratio of gaps. Any allele sequence with a ratio of gap higher than this value will not be included (default=0.5)""")
+		tree_io.add_argument('--min-site-prev', type=float, dest='min_site_prev', default=0.9,
+			help="""Minimum site prevalence. Any site with an actual allele presents in a fraction of sequences lower than this value will not be included (default=0.9)""")
 		tree_io.add_argument('--min-MAF', type=float, dest='min_maf', default=0.01,
-			help="""Minimum allele frequency. Any site with MAF lower than this value will not be included.""")
+			help="""Minimum allele frequency. Any site with MAF lower than this value will not be included (default=0.01)""")
 		tree_io.add_argument('--min-MAC', type=float, dest='min_mac', default=1,
-			help="""Minimum allele count. Any site with MAC lower than this value will not be included.""")
+			help="""Minimum allele count. Any site with MAC lower than this value will not be included (default=1)""")
 		tree_io.add_argument('--min-depth', type=float, dest='min_depth', default=1,
-			help="""Minimum read depth. Any site supported by a number of reads lower than this value will not be included. This option is only for genotypes identified from sequencing reads. Default value is 1 and any value >1 will effectively exclude all whole genome assemblies from analysis. Caution is advised.""")
+			help="""Minimum read depth. Any site supported by a number of reads lower than this value will not be included. This option is only for genotypes identified from sequencing reads. Default value is 1 and any value >1 will effectively exclude all whole genome assemblies from analysis. Caution is advised (default=1)""")
 
 	misc = parser.add_argument_group('misc')
 	misc.add_argument("-h", "--help", action="help",
 		help="""Show this help message and exit""")
 	misc.add_argument('--threads', type=int, metavar='INT', default=1,
-		help="""Number of CPUs to use (1)""")
+		help="""Number of CPUs to use (default=1)""")
 
 	args = vars(parser.parse_args())
 
