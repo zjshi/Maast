@@ -31,7 +31,8 @@ Note: the following installation command line might be helpful
 * [pigz](https://zlib.net/pigz/) (Optional; A parallel implementation of gzip for modern multi-processor, multi-core machines)
 * [lbzip2](http://lbzip2.org/) (Optional; A free, multi-threaded compression utility with support for bzip2 compressed file format)
 * [lz4](http://www.lz4.org) (Optional; Extremely Fast Compression algorithm)
-Note: the optional dependencies are required for the essential features of Maast, but they are recommended to be installed for better performance or additional features.  
+
+Note: the optional dependencies are not required for essential features of Maast, but they are recommended to be installed for better performance or additional features.  
 
 First, retrieve a copy of Maast to your local computing environment
 
@@ -46,7 +47,7 @@ Type in the command line to compile the source code of Maast
 Type in the command line to make GT-Pro ready to execute
 `chmod 755 maast`
 
-The main program (`maast`) should be found in the same directory as `/path/to/Maast/`. The maast can be added to the system path so that the main program can be accessed from anywhere. Reference through full path is also allowed.
+The main program (`maast`) should be found in the same directory as `/path/to/Maast/`. This location can be added to the system path so that the main program can be accessed from anywhere. Reference through full path is also allowed.
 
 Type in the command line to display help text
 
@@ -72,22 +73,22 @@ The running of end_to_end subcomand is equavalent to the running of genomes, db 
 
 ### Genotype SNPs step by step
 
-#### Step 1: Call SNP with a collection of whole genome assemblies
+#### Step 1a: Call SNP with a collection of whole genome assemblies
 `maast genomes --fna-dir /path/to/genomes/ --rep-fna /path/to/rep_genome.fna --out-dir /path/Maast/output/`  
 
 Note:  
 By default, Maast first collapsed redundancy in the input genomes and then call common SNPs from a subset of tag genomes. It also automatically identifies a centroid-genome and use it for the representative genome.
 
-Upon the successful running, this step will produce several important files that are required for downstream steps.
+Upon a successful run, this step will produce several important files that are required for downstream steps.
 * reference.fna (Reference genome that provides genomic coordinate for SNPs)
 * core_snps.vcf (SNP catalog)
 * tag_paths.list (Selected tag genomes)
 
-#### Step 1: Call SNPs from a set of whole genomes without redundancy reduction
+#### Step 1b: Call SNPs from a set of whole genomes without redundancy reduction
 
 `maast genomes --fna-dir /path/to/genomes/ --rep-fna /path/to/rep_genome.fna --out-dir /path/Maast/output/ --skip-centroid --keep-redundancy`  
 
-#### Step 1: Call SNPs with customized Min. prevalence and MAF thresholds
+#### Step 1c: Call SNPs with customized minimum prevalence and minor allele frequency (MAF) thresholds
 
 `maast genomes --fna-dir /path/to/genomes/ --rep-fna /path/to/rep_genome.fna --out-dir /path/Maast/output/ --min-prev 0.95 --snp-freq 0.001`  
 
@@ -97,7 +98,7 @@ Upon the successful running, this step will produce several important files that
 
 Note:  
 
-Upon the successful running, this step will produce a SNP covering k-mer database that is required for genotyping sequencing reads.
+Upon a successful run, this step will produce a SNP covering k-mer database that is required for genotyping sequencing reads.
 * kmer_db.bin (SNP covering k-mer database)
 
 #### Step 3: Genotype whole genome assemblies, sequencing reads or both
@@ -150,7 +151,7 @@ The directories include
 
 `maast genomes --fna-dir ./101346 --out-dir ./101346_out`
 
-Note: upon the successful running, the output files include
+Note: upon a successful run of the first step, the output files include
 * reference.fna (selected reference genome)
 * tag_paths.list (list of selected tag genomes)
 * tag_msa.fna (multiple sequence alignment of tag genomes)
@@ -161,9 +162,9 @@ Note: upon the successful running, the output files include
 
 `maast db --ref-genome ./101346_out/reference.fna --vcf ./101346_out/core_snps.vcf --msa ./101346_out/tag_msa.fna --tag-fna-list ./101346_out/tag_paths.list --fna-dir ./101346/ --out-dir ./101346_out/`
 
-Note: all the required input files could be found from the output files of the first step. 
+Note: all the required input files can be found from the output files of the first step. 
 
-Upon the successful running the second step, the output files include
+Upon a successful run of the second step, the output files include
 * nr_kmer_set.tsv (raw SNP-covering k-mers)
 * check_fna_paths.list (a list of genomes used for validating SNP-covering k-mers)
 * kmer_prof.tsv (hit profile of SNP-covering k-mers)
