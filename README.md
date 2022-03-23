@@ -12,20 +12,26 @@ The publication of Maast is in preparation. Please cite this GitHub repo as alte
 
 ## Installation
 
-<b>Dependencies</b>
+<b>Python requirement</b>
+* Python3 (>=3.6.9)
 
-* Python3
-* numpy
-* Biopython
+<b>Required Python libraries</b>
+* [NumPy] (https://numpy.org/install/) (>=1.19.5)
+* [Biopython] (https://biopython.org/wiki/Download) (>=1.79)
 
-* [Mash](https://github.com/marbl/Mash) (>= v2.2)
-* [MUMmer4](https://github.com/mummer4/mummer) (>= v4.0.0)
+Note: the following installation command line might be helpful
+`pip install numpy biopython`
 
+<b>Required external programs</b>
+* [Mash](https://github.com/marbl/Mash) (>=v2.2)
+* [MUMmer4](https://github.com/mummer4/mummer) (>=v4.0.0)
+
+<b>Optional installation</b>
 * [FastTreeMP](http://www.microbesonline.org/fasttree/FastTreeMP) (>= v2.1.11) (Optional; only required when tree subcommand is run)  
 * [pigz](https://zlib.net/pigz/) (Optional; A parallel implementation of gzip for modern multi-processor, multi-core machines)
 * [lbzip2](http://lbzip2.org/) (Optional; A free, multi-threaded compression utility with support for bzip2 compressed file format)
 * [lz4](http://www.lz4.org) (Optional; Extremely Fast Compression algorithm)
-
+Note: the optional dependencies are required for the essential features of Maast, but they are recommended to be installed for better performance or additional features.  
 
 First, retrieve a copy of Maast to your local computing environment
 
