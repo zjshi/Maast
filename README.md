@@ -116,7 +116,7 @@ Upon the successful running, this step will produce a SNP covering k-mer databas
 
 ### Download and decompress test dataset 
 
-`wget some url here`
+`wget --content-disposition https://fileshare.czbiohub.org/s/TwGJAsAZ6dQsM49/download`
 
 `tar xzvf 101346.tar.gz`
 
