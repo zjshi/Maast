@@ -4,7 +4,7 @@ Maast for microbial agile accurate SNP typing
 
 ## What Maast does
 
-Recent spikes in available whole-genome sequences have greatly expanded intra-species diversity especially for prevalent species. However, the increasing availability also introduced high-level of redundancy which imposed computing burden for core-genome SNP calling. The issue will exacerbate as the trend is irreversible. Maast presented here is a tool free of read alignment and assembly, which detects subspecies structure in conspecific genomes and picks tag and reference genomes for rapid and sensitive core-genome SNP calling in both sequencing reads and whole genomes. Maast runs orders of magnitude faster with less RAM use and recovers more core-genome SNPs comparing to other the-state-of-art tools.
+Recent spikes in available whole-genome sequences have greatly expanded intra-species diversity especially for prevalent species. As the number of genomes per species grows, it becomes computationally challenging to perform whole-genome alignment and call single nucleotide polymorphisms (SNPs). Furthermore, the genomes from some species are highly similar and hence redundant for SNP discovery. These trends are irreversible and worse over time. To address the challenge, we present Maast, a tool for discovering core-genome SNPs and genotyping these SNPs in conspecific genomes, contigs, or unassembled reads. Maast runs orders of magnitude faster than existing tools and uses less RAM because it is free of read alignment and assembly. Maast is also comparably accurate and recovers more core-genome SNPs compared to other the-state-of-art tools.
 
 ## How to cite
 
