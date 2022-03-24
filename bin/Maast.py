@@ -1024,7 +1024,19 @@ def genotype_reads(args):
 	parallel(run_parse_single, arg_list, args['threads'])			
 
 def extract_fastq_path_name(fpath):
-	path_parts = fpath.split('.')
+	# chop off all leading '.' and '/'
+	pparts = []
+	real_idx = 0
+	for i, ppart in enumerate(fpath.split('/')):
+		if ppart == '.' or ppart == "..":
+			continue
+		else:
+			real_idx = i
+			break
+	
+	vpath = '/'.join(fpath.split('/')[real_idx:])
+
+	path_parts = vpath.split('.')
 	real_parts = []
 	if path_parts[-1] in ['gz', 'lz4', 'bz2']:
 		real_parts = path_parts[:-2]
@@ -1033,7 +1045,7 @@ def extract_fastq_path_name(fpath):
 	else:
 		assert False
 	
-	return ".".join(real_parts).replace('/', '_')
+	return ".".join(real_parts).replace('/', '_').replace('.','_')
 
 
 def run_parse_single(vcf_path, gt_path, output):
