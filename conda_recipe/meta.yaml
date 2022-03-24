@@ -1,0 +1,43 @@
+package:
+  name: maast
+  version: 0.0.1
+
+source:
+  git_url: https://github.com/zjshi/Maast.git
+
+requirements:
+  build:
+    - python ==3.6.9
+    - {{ compiler('cxx') }}
+    - setuptools
+    - pip
+  host:
+    - python ==3.6.9
+    - setuptools
+    - pip
+    - numpy
+    - biopython
+  run:
+    - python ==3.6.9
+    - pip
+    - numpy
+    - biopython
+    - fasttree
+    - mash
+    - mummer4
+    - pigz
+    - lz4
+    - lbzip2
+
+test:
+   import:
+    - numpy
+    - biopython
+
+about:
+  home: https://github.com/zjshi/Maast
+  license: MIT License
+  license_file: LICENSE
+  summary: Maast for efficient genotyping of microbial SNPs
+  doc_url: https://github.com/zjshi/Maast
+  dev_url: https://github.com/zjshi/Maast

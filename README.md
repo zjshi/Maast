@@ -57,6 +57,21 @@ Type in the command line to display help text
 
 Maast requires a C++ compiler that is compatible with C++ 11 standards to work properly. All the tests have been done and passed with clang-900.0.38, but it should be compatible for GNU C Compiler (newer than 5.4.0). We have not tested Maast with older compilers, but we expect it to run similiarly as long as it compiles successfully.
 
+
+## Conda Installation
+
+<b>Create a new conda environment</b>
+`conda create -n maast`
+
+<b>Activate the environment just created</b>
+`conda activate maast`
+
+<b>Conda automatic installation with all dependencies</b>
+`conda install -c zjshi -c conda-forge -c bioconda maast gcc python=3.6.9 fasttree mash mummer4 pigz lz4 lbzip2`
+
+<b>Quick installation verification</b>
+`maast -h`  
+
 ## How to use 
 
 ### Type SNPs from a set of whole genome assemblies and sequencing reads from beginning to end in one single command line
