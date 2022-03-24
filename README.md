@@ -34,42 +34,42 @@ Note: the following installation command line might be helpful
 
 Note: the optional dependencies are not required for essential features of Maast, but they are recommended to be installed for better performance or additional features.  
 
-First, retrieve a copy of Maast to your local computing environment
+First, retrieve a copy of Maast to your local computing environment   
 
 `git clone https://github.com/zjshi/Maast.git`
 
-Change your current working directory into where you put Maast
+Change your current working directory into where you put Maast   
 `cd /path/to/Maast/`
 
-Type in the command line to compile the source code of Maast
+Type in the command line to compile the source code of Maast   
 `make`
 
-Type in the command line to make GT-Pro ready to execute
+Type in the command line to make GT-Pro ready to execute   
 `chmod 755 maast`
 
 The main program (`maast`) should be found in the same directory as `/path/to/Maast/`. This location can be added to the system path so that the main program can be accessed from anywhere. Reference through full path is also allowed.
 
-Type in the command line to display help text
+Type in the command line to display help text   
 
 `./maast -h`  
 
-<b>Notes for C++ compiler</b>
+<b>Notes for C++ compiler</b>   
 
 Maast requires a C++ compiler that is compatible with C++ 11 standards to work properly. All the tests have been done and passed with clang-900.0.38, but it should be compatible for GNU C Compiler (newer than 5.4.0). We have not tested Maast with older compilers, but we expect it to run similiarly as long as it compiles successfully.
 
 
 ## Conda Installation
 
-<b>Create a new conda environment</b>
+<b>Create a new conda environment</b>   
 `conda create -n maast`
 
-<b>Activate the environment just created</b>
+<b>Activate the environment just created</b>   
 `conda activate maast`
 
-<b>Conda automatic installation with all dependencies</b>
+<b>Conda automatic installation with all dependencies</b>   
 `conda install -c zjshi -c conda-forge -c bioconda maast gcc python=3.6.9 fasttree mash mummer4 pigz lz4 lbzip2`
 
-<b>Quick installation verification</b>
+<b>Quick installation verification</b>   
 `maast -h`  
 
 ## How to use 
