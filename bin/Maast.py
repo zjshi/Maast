@@ -2,7 +2,8 @@
 
 from __future__ import division
 
-import sys, os, time, argparse, shutil, hashlib, math
+import sys, os, time, argparse
+import shutil, hashlib, math, multiprocessing
 import numpy as np
 from operator import itemgetter
 
@@ -17,7 +18,7 @@ def get_data_type():
 	""" Get program specified by user (species, genes, or snps) """
 	import sys
 	if len(sys.argv) == 1 or sys.argv[1] in ['-h', '--help']:
-		cmd = '%s ' % (os.path.basename(sys.argv[0]))
+		cmd = 'maast '
 		print('usage: %s <module> [options]' % cmd)
 		print('')
 		print('description: identify and genotype core-genome snps from <module>')
@@ -189,7 +190,9 @@ def parse_args():
 
 	if data_type in ['tree']:	
 		tree_io = parser.add_argument_group('tree_io')
-		tree_io.add_argument('--input-list', type=str, dest='input_list', required=True,
+		tree_io.add_argument('--input-dir', type=str, dest='input_dir', required=True,
+			help="""Input directory that should contains genotype result files generated from Maast genotype command""")
+		tree_io.add_argument('--input-list', type=str, dest='input_list', default=None,
 			help="""A list of input pairs. Each pair per row contains a path to a genotype result file generated from Maast genotype command and a unique name of the file. (required)
                     The path and name must be separated by a tab.
                     Example
@@ -213,8 +216,8 @@ def parse_args():
 	misc = parser.add_argument_group('misc')
 	misc.add_argument("-h", "--help", action="help",
 		help="""Show this help message and exit""")
-	misc.add_argument('--threads', type=int, metavar='INT', default=1,
-		help="""Number of CPUs to use (default=1)""")
+	misc.add_argument('--threads', type=int, metavar='INT', default=multiprocessing.cpu_count(),
+		help="""Number of CPUs to use (default=use all)""")
 
 	args = vars(parser.parse_args())
 
@@ -1126,6 +1129,9 @@ def call_snps_main(args):
 			else:
 				print("useless option --has-completeness")
 	
+	if len(args['fna_paths']) <= 5:
+		sys.exit("Input genomes {} are fewer than the min. requirement (5)".format(len(args['fna_paths'])))
+
 	if len(args['fna_paths']) <= math.ceil(1 / args['snp_freq']):
 		print("[Warning] Total number of genomes ({}) < min. number of genomes required for effective SNP calling with MAF {} ({})".format(len(args['fna_paths']), args['snp_freq'], math.ceil(1 / args['snp_freq'])))
 		print("[Warning] Skip tag genome selection, all genomes will be used")
