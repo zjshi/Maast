@@ -78,11 +78,11 @@ class Alignment:
 
 		self.count_mat = np.array([As, Ts, Gs, Cs, Ns, Gaps])
 
-		print(self.char_mat)
-		print(self.char_mat == 'A')
-		print(As)
-		print(self.count_mat)
-		print(self.count_mat.shape)
+		#print(self.char_mat)
+		#print(self.char_mat == 'A')
+		#print(As)
+		#print(self.count_mat)
+		#print(self.count_mat.shape)
 
 		"""
 		char_template: complete set of chars for each site on the sequences, from which the ref allele and alt allele will be selected

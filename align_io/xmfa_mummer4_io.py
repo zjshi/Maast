@@ -29,7 +29,7 @@ def parse(fpath, max_sample=float('inf')):
 					cur_aln.nseqs = len(cur_aln.seqs)
 					cur_aln.ncols = len(cur_aln.seqs[0].seq)
 					cur_aln.chrom = cur_aln.seqs[0].chrom
-					print(cur_aln.nseqs)
+					# print(cur_aln.nseqs)
 					cur_aln.update()
 					last_aln = cur_aln
 					cur_aln = seq_ali.Alignment()

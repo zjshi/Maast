@@ -24,11 +24,11 @@ def get_data_type():
 		print('description: identify and genotype core-genome snps from <module>')
 		print('')
 		print('modules:')
-		print('	end_to_end         Run full Maast pipeline from begining to end')
-		print('	genomes            perform multiple alignment of genomes to call core-genome SNPs')
-		print('	db                 build kmer database targeting snps')
-		print('	genotype           call core-genome SNPs for single genomes and isolate sequencing data')
-		print('	tree               build SNP tree using identified genotypes')
+		print('	end_to_end		 Run full Maast pipeline from begining to end')
+		print('	genomes			perform multiple alignment of genomes to call core-genome SNPs')
+		print('	db				 build kmer database targeting snps')
+		print('	genotype		   call core-genome SNPs for single genomes and isolate sequencing data')
+		print('	tree			   build SNP tree using identified genotypes')
 		print('')
 		print("use '%s <module> -h' for usage on a specific command" % cmd)
 		print('')
@@ -138,20 +138,20 @@ def parse_args():
 		db.add_argument('--kmer-type', dest='kmer_type', default='all',
 			choices=['all', 'center'],
 			help="""
-                    Choose type of kmers to be fetched
-                    all: all elligible kmers 
-                        1) covered snp at any position
-                        and 2) do not cover any bad sites (e.g. N or -)
-                        and 3) were well contained on its coordinate division (default)
-                    center: all kmers whose target snps was at their centers.""")
+					Choose type of kmers to be fetched
+					all: all elligible kmers 
+						1) covered snp at any position
+						and 2) do not cover any bad sites (e.g. N or -)
+						and 3) were well contained on its coordinate division (default)
+					center: all kmers whose target snps was at their centers.""")
 		db.add_argument('--snp-cover', dest='snp_type', default='all',
 			choices=['all', 'l1-tags', 'l2-tags'],
 			help="""
-                    Choose object to kmerize
-                    all: all snps from the cluster will be attempted for kmer search; most kmers (default)
-                    l1-tags: only representative snps from all snp blocks will be attempted
-                    l2-tags: only representative snps from representative snp blocks will be attempted; fewest kmers
-                    * note: all kmers must uniquely match an allele and intersect >= 1 SNP""")
+					Choose object to kmerize
+					all: all snps from the cluster will be attempted for kmer search; most kmers (default)
+					l1-tags: only representative snps from all snp blocks will be attempted
+					l2-tags: only representative snps from representative snp blocks will be attempted; fewest kmers
+					* note: all kmers must uniquely match an allele and intersect >= 1 SNP""")
 
 	if data_type in ['genotype', 'end_to_end']:
 		genotype_input = parser.add_argument_group('genotype_input')
@@ -194,12 +194,12 @@ def parse_args():
 			help="""Input directory that should contains genotype result files generated from Maast genotype command""")
 		tree_io.add_argument('--input-list', type=str, dest='input_list', default=None,
 			help="""A list of input pairs. Each pair per row contains a path to a genotype result file generated from Maast genotype command and a unique name of the file. (required)
-                    The path and name must be separated by a tab.
-                    Example
-                    /file/path/1	name1
-                    /file/path/2	name2
-                    /file/path/3    name3
-                    ...""")
+					The path and name must be separated by a tab.
+					Example
+					/file/path/1	name1
+					/file/path/2	name2
+					/file/path/3	name3
+					...""")
 		tree_io.add_argument('--min-sites', type=int, dest='min_sites_per_sample', default=1000,
 			help="""Minimum SNP sites. Any allele sequence with a number of non-empty sites lower than this value will not be included (default=1000)""")
 		tree_io.add_argument('--max-gap-ratio', type=float, dest='max_gap_ratio', default=0.5,
@@ -535,7 +535,8 @@ def run_mash_scketch(args):
 	command += "-l %s " % args['fna_list_path']
 
 	out, err = run_command(command)
-	sys.stderr.write(str(out)+'\n'+str(err))
+	with open(args['logfile'], 'a') as logger: 
+		logger.write(str(out)+'\n'+str(err))
 
 	args['mash_sketch_path'] = args['mash_dir']+'/mash_sketch.msh'
 
@@ -554,7 +555,8 @@ def run_mash_dist(args):
 	command += "> %s " % args['mash_dist_path'] 
 
 	out, err = run_command(command)
-	sys.stderr.write(str(out)+'\n'+str(err))
+	with open(args['logfile'], 'a') as logger: 
+		logger.write(str(out)+'\n'+str(err))
 
 def do_precut(args):
 	dist_path = args['mash_dist_path']
@@ -570,7 +572,8 @@ def do_precut(args):
 	command += "> %s " % args['cut_dist_path']
 	
 	out, err = run_command(command)
-	sys.stderr.write(str(out)+'\n'+str(err))
+	with open(args['logfile'], 'a') as logger: 
+		logger.write(str(out)+'\n'+str(err))
 
 def id_clusters(args):
 	run_mash_scketch(args)
@@ -655,7 +658,8 @@ def run_kmerset_validate(args):
 	command += "-o %s " % args['kmer_prof_path']
 
 	out, err = run_command(command)
-	sys.stderr.write(str(out)+'\n'+str(err))
+	with open(args['logfile'], 'a') as logger:
+		logger.write(str(out)+'\n'+str(err))
 
 def filter_kmers(args):
 	assert os.path.exists(args['kmer_prof_path'])
@@ -701,7 +705,8 @@ def run_build_db(args):
 	command += "> %s " % args['kmer_db_path']
 
 	out, err = run_command(command)
-	sys.stderr.write(str(out)+'\n'+str(err))
+	with open(args['logfile'], 'a') as logger:
+		logger.write(str(out)+'\n'+str(err))
 
 def read_input_dir(args, in_dir, subset_list=None):
 	subset_map = dict()
@@ -987,7 +992,8 @@ def genotype_reads(args):
 		gt_paths.append(outname + '/' + extract_fastq_path_name(fpath) + ".tsv")
 	
 	out, err = run_command(command)
-	sys.stderr.write(str(out)+'\n'+str(err))
+	with open(args['logfile'], 'a') as logger:
+		logger.write(str(out)+'\n'+str(err))
 
 	merge_paths = []
 	if args["merge_pairs"]:
@@ -1230,6 +1236,7 @@ def call_snps_main(args):
 
 
 def build_db_main(args):
+	print("Database building; start")
 	args['kmer_size'] = 31
 
 	genome_path, vcf_path, coords_path, tag_list_path = args['ref_genome'], args['vcf'], args['coords'], args['tag_list']
@@ -1263,21 +1270,32 @@ def build_db_main(args):
 
 	run_build_db(args)
 
+	print("Database building; finished")
+
 
 def genotype_main(args):
+	print("Genotyping; start")
 	read_input_dir(args, args['in_dir'], args['subset_list'])
 	
 	try: os.makedirs(args['out_dir'])
 	except: pass
 
 	if len(args["fna_paths"]) > 0:
+		print("Genomes found; start")
 		genotype_single_genomes(args)
+		print("Genomes found; done")
 	
 	if len(args["fq_paths"]) > 0:
+		print("Reads found; start")
 		genotype_reads(args)
+		print("Reads found; start")
+
+	print("Genotyping; finished")
 
 def tree_main(args):
+	print("SNP tree building; start")
 	concat_alleles.concat_allele_tree(args)
+	print("SNP tree building; finished")
 
 def end2end_main(args):
 	try: os.makedirs(args['out_dir'])
@@ -1296,18 +1314,27 @@ def end2end_main(args):
 
 	build_db_main(args)
 
+	print("Genotyping; start")
 	read_input_dir(args, args['in_dir'], args['subset_list'])
 	if len(args["fna_paths"]) > 0:
+		print("Genomes found; start")
 		genotype_single_genomes(args)
+		print("Genomes found; done")
 	
 	if len(args["fq_paths"]) > 0:
+		print("Reads found; start")
 		genotype_reads(args)
+		print("Reads found; start")
+	print("Genotyping; finished")
+	print("All output files are in {}".format(args['out_dir']))
 
 def main():
 	args = parse_args()
 
 	try: os.makedirs(args['out_dir'])
 	except: pass
+
+	args['logfile'] = "{}/logfile".format(args['out_dir'].rstrip('/'))
 
 	if args['data_type'] == 'genomes':
 		call_snps_main(args)
