@@ -237,7 +237,7 @@ def run_command(cmd, env=None):
 		err_msg += "\n%s" % err
 		sys.exit(err_msg)
 	else:
-		return out, err
+		return out.decode('utf-8'), err.decode('utf-8')
 
 def parallel(function, argument_list, threads):
 	""" Based on: https://gist.github.com/admackin/003dd646e5fadee8b8d6 """
@@ -397,7 +397,9 @@ def auto_min_pid_by_delta(coords_path, idt_delta):
 			pid = float(values[6])
 			pids.append(pid)
 
-	avg_pid = sum(pids)/len(pids)
+	avg_pid = 0.7
+	if len(pids) != 0:
+		avg_pid = sum(pids)/len(pids)
 
 	min_pid_by_delta = avg_pid * (1 - idt_delta)
 
