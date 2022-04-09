@@ -38,15 +38,15 @@ def format_header(sample_ids, cmdl):
 	header = ""
 	header += """##fileformat=VCFv4.1\n"""
 	header += """##fileDate=%s\n""" % time.strftime("%Y-%m-%d %H:%M")
-	header += """##source=https://github.com/snayfach/snpMLST\n"""
+	header += """##source=https://github.com/zjshi/Maast\n"""
 	header += """##command='%s'\n""" % cmdl
 	header += """##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of Samples With Data">\n"""
 	header += """##INFO=<ID=DP,Number=1,Type=Integer,Description="Total Depth">\n"""
 	header += """##INFO=<ID=AF,Number=A,Type=Float,Description="Alternate Allele Frequency">\n"""
-	header += """##FORMAT=<ID=GP1,Number=1,Type=Float,Description="Genotype 1 Probability">\n"""
-	header += """##FORMAT=<ID=GP2,Number=1,Type=Float,Description="Genotype 2 Probability">\n"""
-	header += """##FORMAT=<ID=GP3,Number=1,Type=Float,Description="Genotype 3 Probability">\n"""
-	header += """##FORMAT=<ID=GP4,Number=1,Type=Float,Description="Genotype 4 Probability">\n"""
+	header += """##FORMAT=<ID=GP1,Number=1,Type=Float,Description="Genotype 1 (REF) Probability">\n"""
+	header += """##FORMAT=<ID=GP2,Number=1,Type=Float,Description="Genotype 2 (1st ALT) Probability">\n"""
+	header += """##FORMAT=<ID=GP3,Number=1,Type=Float,Description="Genotype 3 (2nd ALT) Probability">\n"""
+	header += """##FORMAT=<ID=GP4,Number=1,Type=Float,Description="Genotype 4 (3rd ALT) Probability">\n"""
 
 	col_names = ['CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO', 'FORMAT'] + sample_ids
 	header += """#%s\n""" % "\t".join(col_names)

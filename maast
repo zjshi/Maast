@@ -17,7 +17,7 @@ export PYTHONPATH=$PYTHONPATH:${MAAST}
 if [ "$1" = "-v" ] || [ "$1" = "--version" ] || [ "$1" = "version" ] || [ "$1" = "-version" ]; then
 	Version	
 elif [ "$1" = "-h" ] || [ "$1" = "-help" ] || [ "$1" = "help" ] || [ "$1" = "--help" ]; then
-	Maast.py -h	
+	maast.py -h	
 else
-	Maast.py $*
+	maast.py $*
 fi

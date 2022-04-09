@@ -192,7 +192,9 @@ Among them, kmer_db.bin is the database file that will be used in the next step 
 
 `maast genotype --in-dir ./101346/ --ref-genome ./101346_out/reference.fna --db ./101346_out/kmer_db.bin --vcf ./101346_out/core_snps.vcf --out-dir ./101346_out/`
 
-Note: all the required input files could be found from the output files of two previous steps. 
+Note: Files to genotype should be supplied in a directory with --in-dir. Supported file types including FASTA and FASTQ formats. Input files can be all FASTAs, FASTQs or a mixture of both.
+
+all other required input files could be found from the output files of two previous steps. 
 
 The main output files are the SNP genotypes that can be found in the a directory named "gt_results" in the designated output directory, ./101346_out/ in this case.
 
