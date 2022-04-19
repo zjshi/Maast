@@ -1,3 +1,29 @@
+# Catalogue
+
+* [Maast](https://github.com/zjshi/Maast#maast)
+* [What Maast does](https://github.com/zjshi/Maast#what-maast-does)
+* [How to cite](https://github.com/zjshi/Maast#how-to-cite)
+* [Installation](https://github.com/zjshi/Maast#installation)
+* [Conda Installation](https://github.com/zjshi/Maast#conda-installation)
+* [How to use](https://github.com/zjshi/Maast#how-to-use)
+* * [Type SNPs from a set of whole genome assemblies and sequencing reads from beginning to end in one single command line](https://github.com/zjshi/Maast#type-snps-from-a-set-of-whole-genome-assemblies-and-sequencing-reads-from-beginning-to-end-in-one-single-command-line)
+* * [Genotype SNPs step by step](https://github.com/zjshi/Maast#genotype-snps-step-by-step)
+* * * [Step 1a: Call SNP with a collection of whole genome assemblies](https://github.com/zjshi/Maast#step-1a-call-snp-with-a-collection-of-whole-genome-assemblies)
+* * * [Step 1b: Call SNPs from a set of whole genomes without redundancy reduction](https://github.com/zjshi/Maast#step-1b-call-snps-from-a-set-of-whole-genomes-without-redundancy-reduction)
+* * * [Step 1c: Call SNPs with customized minimum prevalence and minor allele frequency (MAF) thresholds](https://github.com/zjshi/Maast#step-1c-call-snps-with-customized-minimum-prevalence-and-minor-allele-frequency-maf-thresholds)
+* * * [Step 2: Build SNP covering k-mer database](https://github.com/zjshi/Maast#step-2-build-snp-covering-k-mer-database)
+* * * [Step 3: Genotype whole genome assemblies, sequencing reads or both](https://github.com/zjshi/Maast#step-3-genotype-whole-genome-assemblies-sequencing-reads-or-both)
+* * * [Construct a SNP tree with Maast genotypes (optional)](https://github.com/zjshi/Maast#construct-a-snp-tree-with-maast-genotypes-optional)
+* * * [More helper text and arguments](https://github.com/zjshi/Maast#more-helper-text-and-arguments)
+* [Example tutorial](https://github.com/zjshi/Maast#example)
+* * [Download and decompress test dataset](https://github.com/zjshi/Maast#download-and-decompress-test-dataset)
+* * [Genotype SNPs from begin to end in one single command line with the test dataset](https://github.com/zjshi/Maast#genotype-snps-from-begin-to-end-in-one-single-command-line-with-the-test-dataset)
+* * [Genotype SNPs step by step with the test dataset](https://github.com/zjshi/Maast#genotype-snps-step-by-step-with-the-test-dataset)
+* * * [Step 1: Call SNPs with whole genome assemblies](https://github.com/zjshi/Maast#step-1-call-snps-with-whole-genome-assemblies)
+* * * [Step 2: Build SNP covering k-mer database](https://github.com/zjshi/Maast#step-2-build-snp-covering-k-mer-database-1)
+* * * [Step 3: Genotype whole genome assemblies, sequencing reads or both](https://github.com/zjshi/Maast#step-3-genotype-whole-genome-assemblies-sequencing-reads-or-both-1)
+* * * [Construct a SNP tree with Maast genotypes (optional)](https://github.com/zjshi/Maast#construct-a-snp-tree-with-maast-genotypes-optional-1)
+
 # Maast
 
 Maast for microbial agile accurate SNP typing  
