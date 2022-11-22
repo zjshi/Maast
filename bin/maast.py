@@ -480,13 +480,12 @@ def run_mummer4(args):
 	shutil.copy(ref_fpath, os.path.join(args['mummer4_dir'], 'reference.fna'))
 
 	arg_list = []
-	rep_id = ref_fpath.split('/')[-1].replace('.fna', '')
+	rep_id = '.'.join(ref_fpath.split('/')[-1].split('.')[:-1])
 
 	print("[paired alignment]: start")
 	for fpath in fpaths:
-		genome_id = fpath.split('/')[-1].replace('.fna', '')
+		genome_id = '.'.join(fpath.split('/')[-1].split('.')[:-1])
 		out_dir = '%s/aln/%s' % (args['mummer4_dir'], genome_id)
-
 		arg_list.append([fpath, genome_id, ref_fpath, rep_id, out_dir, args['skip_align'], args['min_pid'], args['min_aln_len'], args['max_pid_delta'], 1])
 
 	print("[paired alignment]: done")
@@ -829,7 +828,7 @@ def genotype_single_genomes(args):
 
 	arg_list = []
 	arg_list_gt = []
-	rep_id = ref_fpath.split('/')[-1].replace('.fna', '')
+	rep_id = '.'.join(ref_fpath.split('/')[-1].split('.')[:-1])
 
 	global ref 
 	ref = read_ref(ref_fpath)

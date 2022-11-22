@@ -75,7 +75,10 @@ def build_msa(indir, overwrite=True, max_genomes=None, max_sites=None, msa_id=No
 	else:
 		genome_ids = []
 		for genome_id in os.listdir(aln_dir):
-			if "{}.fna".format(genome_id) in subset:
+			if "{}.fna".format(genome_id) in subset or \
+					"{}.fasta".format(genome_id) in subset or \
+                    "{}.fsa".format(genome_id) in subset or \
+                    "{}.fa".format(genome_id) in subset:
 				genome_ids.append(genome_id)
 
 	print("   count genomes: %s" % len(genome_ids))
