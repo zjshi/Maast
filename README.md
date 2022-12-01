@@ -93,7 +93,7 @@ Maast requires a C++ compiler that is compatible with C++ 11 standards to work p
 `conda activate maast`
 
 <b>Conda automatic installation with all dependencies</b>   
-`conda install -c zjshi -c conda-forge -c bioconda maast gcc python=3.6.9 fasttree mash mummer4 pigz lz4 lbzip2`
+`conda install -c zjshi -c conda-forge -c bioconda maast`
 
 <b>Quick installation verification</b>   
 `maast -h`  

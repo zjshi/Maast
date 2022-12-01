@@ -567,11 +567,13 @@ void multi_dbval(int kv_n, vector<int_type>* kvecs, int n_path, vector<string>& 
 
 		if (strcmp(kp_type, ".bin") == 0) {
 			bin_load_pool<int_type>(kpaths[i].c_str(), kpool);
-		} else if (strcmp(kp_type, ".fna") == 0) {
-			fna_load_pool<int_type>(kpaths[i].c_str(), buffer, kpool, code_dict, b_mask);	
 		} else {
-			bit_load_pool<int_type>(kpaths[i].c_str(), buffer, kpool, code_dict, b_mask);	
-		}
+			fna_load_pool<int_type>(kpaths[i].c_str(), buffer, kpool, code_dict, b_mask);	
+		} 
+		
+		//else {
+		//	bit_load_pool<int_type>(kpaths[i].c_str(), buffer, kpool, code_dict, b_mask);	
+		//}
 
 		// splitted loops 
 		for (int j = 0; j < 4; ++j) {
