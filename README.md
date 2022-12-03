@@ -43,7 +43,9 @@ The publication of Maast is in preparation. Please cite this GitHub repo as alte
 
 <b>Required Python libraries</b>
 * [NumPy] (https://numpy.org/install/) (>=1.19.5)
+* [SciPy] (https://scipy.org/install/) (>=1.5.4)
 * [Biopython] (https://biopython.org/wiki/Download) (>=1.79)
+* [NetworkX] (https://pypi.org/project/networkx/) (>=2.5.1)
 
 Note: the following installation command line might be helpful
 `pip install numpy biopython`

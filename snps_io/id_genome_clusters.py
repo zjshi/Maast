@@ -4,6 +4,7 @@ import sys, os
 import argparse, operator
 
 import numpy as np
+import networkx as nx
 
 from time import time
 
@@ -59,7 +60,7 @@ class GenomeCluster:
 	def contains(self, genome):
 		return genome in self.genomes
 
-	def id_tag_genome(self):
+	def id_tag_genome(self, cent_meth):
 		# no snps
 		if len(self.genomes) == 0:
 			sys.exit("\nError: no genomes on cluster: cannot id tag genome\n")
@@ -69,10 +70,32 @@ class GenomeCluster:
 		else:
 			tmp_min = 0
 			tmp_genome = None
-			for genome in self.genomes.keys():
-				if self.genomes[genome] > tmp_min:
-					tmp_min = self.genomes[genome]
-					tmp_genome = genome
+			if cent_meth == "degree":
+				for genome in self.genomes.keys():
+					if self.genomes[genome] > tmp_min:
+						tmp_min = self.genomes[genome]
+						tmp_genome = genome
+			else:
+				G = nx.Graph()
+				centrality = dict()
+				for link in self.links.keys():
+					genomes = link.split("|")
+					G.add_edge(genomes[0], genomes[1])
+				if cent_meth == "eigenvector":
+					centrality = nx.eigenvector_centrality(G)
+				elif cent_meth == "katz":
+					centrality = nx.katz_centrality(G)
+				elif cent_meth == "closeness":
+					centrality = nx.closeness_centrality(G)
+				elif cent_meth == "information":
+					centrality = nx.information_centrality(G)
+				elif cent_meth == "betweenness":
+					centrality = nx.betweenness_centrality(G)
+				elif cent_meth == "load":
+					centrality = nx.load_centrality(G)
+				else:
+					sys.exit("Error: centrality method {} is not support for tag genome identification".format(cent_meth))
+				tmp_genome = [k for k, v in sorted(centrality.items(), key=lambda x: x[1])][-1]
 			self.tag_genome = tmp_genome
 
 		return self.tag_genome
@@ -91,7 +114,7 @@ class GenomeCluster:
 
 		return fmt_str
 
-def search_genome_clusters(dist_path, max_d):
+def search_genome_clusters(dist_path, max_d, cent_meth):
 	sys.stderr.write("[clustering] start\n")
 
 	genome_clusters = []
@@ -137,18 +160,18 @@ def search_genome_clusters(dist_path, max_d):
 	sys.stderr.write("[clustering] done\n")
 	sys.stderr.write("[clustering] {} genomes have been included in clusters\n".format(len(genome_lookup.keys())))
 
-	good_clusters = verify_clusters(genome_clusters, genome_lookup)
+	good_clusters = verify_clusters(genome_clusters, genome_lookup, cent_meth)
 
 	return good_clusters, len(genome_lookup.keys())
 
-def verify_clusters(genome_clusters, genome_lookup):
+def verify_clusters(genome_clusters, genome_lookup, cent_meth):
 	for genome in genome_lookup.keys():
 		assert genome in genome_clusters[genome_lookup[genome]].genomes
 
 	good_clusters = []
 	for i, cluster in enumerate(genome_clusters):
 		if cluster is not None:
-			cluster.id_tag_genome()
+			cluster.id_tag_genome(cent_meth)
 			good_clusters.append(cluster)
 
 			for genome in cluster.genomes:
@@ -162,14 +185,14 @@ def output_clusters(good_clusters, output_path="/dev/stdout"):
 			for gcluster in good_clusters:
 				fh.write(gcluster.fmtout_all())
 
-def build_genome_blocks(dist_path, total_n, critical_n=100, max_d=0.01, end_d=0.000001, range_factor=1.2, output_path=None):
+def build_genome_blocks(dist_path, total_n, critical_n=100, max_d=0.01, end_d=0.000001, range_factor=1.2, cent_meth="degree", output_path=None):
 	optimal_d = 0
 	optimal_n = 0
 	optimal_clusters = []
 
 	upper_cap = critical_n * range_factor
 
-	genome_clusters, clust_n = search_genome_clusters(dist_path, max_d)
+	genome_clusters, clust_n = search_genome_clusters(dist_path, max_d, cent_meth)
 	
 	tag_n = total_n - clust_n + len(genome_clusters)
 
@@ -193,7 +216,7 @@ def build_genome_blocks(dist_path, total_n, critical_n=100, max_d=0.01, end_d=0.
 		while min_d >= end_d and tag_n < critical_n:
 			min_d = min_d / 10
 
-			genome_clusters, clust_n = search_genome_clusters(dist_path, min_d)
+			genome_clusters, clust_n = search_genome_clusters(dist_path, min_d, cent_meth)
 			tag_n = total_n - clust_n + len(genome_clusters)
 
 			print("\t{}: {} tag genomes".format(min_d, tag_n))
@@ -219,7 +242,7 @@ def build_genome_blocks(dist_path, total_n, critical_n=100, max_d=0.01, end_d=0.
 			while delta_d > 0.0000001 and (tag_n > upper_cap or tag_n < critical_n):
 				cur_d = (left_d + right_d) / 2
 
-				genome_clusters, clust_n = search_genome_clusters(dist_path, cur_d)
+				genome_clusters, clust_n = search_genome_clusters(dist_path, cur_d, cent_meth)
 				tag_n = total_n - clust_n + len(genome_clusters)
 
 				if tag_n > mid_point:

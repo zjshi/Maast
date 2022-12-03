@@ -105,6 +105,24 @@ def parse_args():
 			help="""Similiar to --start-cutoff, the cutoff at which Maast will end the search for a distance cutoff. \nThis value should be smaller than --start-cutoff (default=0.0001)""")
 		prep.add_argument('--range-factor', type=float, metavar='FLOAT', default=1.2,
 			help="""This factor times the minimum number of genomes needed for a given MAF will create \nthe upper bound of a range satisfying the search. It should be larger than 1 (default=1.2)""")
+		prep.add_argument('--tag-centrality', dest='centrality_method', default='degree',
+			choices=['degree', 'eigenvector', 'closeness', 'information', 'betweenness', 'load'],
+			help="""
+Choose method to rank genomes by centrality in a genome cluster 
+    degree: degree centrality, which rank genomes by the number of links (default)
+    eigenvector: eigenvector centrality
+    closeness: closeness centrality
+    information: information centrality
+    betweenness: betweenness centrality
+    load: load centrality
+	*for method details, see https://networkx.org/documentation/stable/reference/algorithms/centrality.html""")
+		prep.add_argument('--centroid-distance', dest='cent_dist_type', default='L1',
+			choices=['L1', 'L2', 'Linf'],
+			help="""
+Choose type of distance that will be used to pick centroid genome as the one with least distance to other genomes in the cluster. 
+    L1: sum of distances to all other genomes
+    L2: square root of the sum of the squared distances to all other genomes
+    Linf: the maximum distance to all other genomes""")
 
 	if data_type in ['genomes', 'end_to_end']:
 		snps = parser.add_argument_group('snp-calling')
@@ -136,7 +154,6 @@ def parse_args():
 	if data_type in ['db', 'end_to_end']:
 		db.add_argument('--genome-name', dest='genome_name', type=str, default='100000',
 			help="""Name of the core-genome corresponding to INPUT. Should be six digits \nwith the first digit in [1, 9] (default=100000)""")
-		db.add_argument('--overwrite', dest='overwrite', action='store_true', help="""Overwrite existing output files""")
 		db.add_argument('--kmer-type', dest='kmer_type', default='all',
 			choices=['all', 'center'],
 			help="""
@@ -218,8 +235,10 @@ Choose object to kmerize
 	misc = parser.add_argument_group('misc')
 	misc.add_argument("-h", "--help", action="help",
 		help="""Show this help message and exit""")
-	misc.add_argument('--threads', type=int, metavar='INT', default=multiprocessing.cpu_count(),
-		help="""Number of CPUs to use (default=use all)""")
+	# use all if default=multiprocessing.cpu_count()
+	misc.add_argument('--threads', type=int, metavar='INT', default=1,
+		help="""Number of CPUs to use (default=1)""")
+	misc.add_argument('--overwrite', dest='overwrite', action='store_true', help="""Overwrite existing output files""")
 
 	args = vars(parser.parse_args())
 
@@ -599,7 +618,7 @@ def id_clusters(args):
 
 	optimal_clusters, optimal_d, optimal_n = [], None, None
 	while s_cut <= args['precut']:
-		optimal_clusters, optimal_d, optimal_n, firstcut_exit = id_genome_clusters.build_genome_blocks(dist_path, total_n, critical_n, s_cut, e_cut, r_fac)
+		optimal_clusters, optimal_d, optimal_n, firstcut_exit = id_genome_clusters.build_genome_blocks(dist_path, total_n, critical_n, s_cut, e_cut, r_fac, args['centrality_method'])
 		if firstcut_exit is True:
 			s_cut = s_cut + 0.01
 		else:
@@ -631,7 +650,7 @@ def id_tag_ref(args):
 	if 'tag_genome_paths' in args and len(args['tag_genome_paths']) > 1:
 		tag_paths = args['tag_genome_paths']
 
-	centroid = id_centroid.identify(tag_paths, dist_path)
+	centroid = id_centroid.identify(tag_paths, dist_path, args['cent_dist_type'])
 	
 	print(centroid)
 
@@ -1347,6 +1366,10 @@ def end2end_main(args):
 
 def main():
 	args = parse_args()
+
+	if args['overwrite'] is True:
+		try: os.rmdir(args['out_dir'])
+		except: pass
 
 	try: os.makedirs(args['out_dir'])
 	except: pass
