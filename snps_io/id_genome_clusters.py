@@ -20,16 +20,20 @@ class GenomeCluster:
 	def size(self):
 		return len(genomes)
 
-	def add(self, genome1, genome2, d):
+	def add(self, genome1, genome2, d, edge_weighted):
+		weight = 1
+		if edge_weighted is True:
+			weight = 1 - d
+
 		if genome1 not in self.genomes:
-			self.genomes[genome1] = 1
+			self.genomes[genome1] = weight
 		else:
-			self.genomes[genome1] = self.genomes[genome1] + 1
+			self.genomes[genome1] = self.genomes[genome1] + weight
 
 		if genome2 not in self.genomes:
-			self.genomes[genome2] = 1
+			self.genomes[genome2] = weight
 		else:
-			self.genomes[genome2] = self.genomes[genome2] + 1
+			self.genomes[genome2] = self.genomes[genome2] + weight
 
 		link = "{}|{}".format(genome1, genome2)
 		if genome1 > genome2:
@@ -45,12 +49,12 @@ class GenomeCluster:
 			#sys.stderr.write("{} {}\n".format(genome1, genome2))
 			
 
-	def merge(self, cluster2, genome1, genome2, d):
+	def merge(self, cluster2, genome1, genome2, d, edge_weighted):
 		if self.contains(genome1) and cluster2.contains(genome2):
-			self.add(genome1, genome2, d)
+			self.add(genome1, genome2, d, edge_weighted)
 			for link in cluster2.links.keys():
 				genomes = link.split("|")
-				self.add(genomes[0], genomes[1], cluster2.links[link])
+				self.add(genomes[0], genomes[1], cluster2.links[link], edge_weighted)
 		else:
 			sys.exit("{} is not in cluster1 or {} is not cluster2, nullify the basis for merging".format(genome1, genome2))
 
@@ -114,7 +118,7 @@ class GenomeCluster:
 
 		return fmt_str
 
-def search_genome_clusters(dist_path, max_d, cent_meth):
+def search_genome_clusters(dist_path, max_d, cent_meth, edge_weighted):
 	sys.stderr.write("[clustering] start\n")
 
 	genome_clusters = []
@@ -132,25 +136,25 @@ def search_genome_clusters(dist_path, max_d, cent_meth):
 
 			if genome1 not in genome_lookup and genome2 not in genome_lookup:
 				new_cluster = GenomeCluster(max_d)
-				new_cluster.add(genome1, genome2, d)
+				new_cluster.add(genome1, genome2, d, edge_weighted)
 				genome_clusters.append(new_cluster)
 				genome_lookup[genome1] = len(genome_clusters) - 1
 				genome_lookup[genome2] = len(genome_clusters) - 1
 			elif genome1 in genome_lookup and genome2 not in genome_lookup:
 				cluster_indx = genome_lookup[genome1]
 				genome_lookup[genome2] = cluster_indx
-				genome_clusters[cluster_indx].add(genome1, genome2, d)
+				genome_clusters[cluster_indx].add(genome1, genome2, d, edge_weighted)
 			elif genome1 not in genome_lookup and genome2 in genome_lookup:
 				cluster_indx = genome_lookup[genome2]
 				genome_lookup[genome1] = cluster_indx
-				genome_clusters[cluster_indx].add(genome1, genome2, d)
+				genome_clusters[cluster_indx].add(genome1, genome2, d, edge_weighted)
 			else:
 				if genome_lookup[genome1] == genome_lookup[genome2]:
 					pass
 				else:
 					cluster_indx1 = genome_lookup[genome1]
 					cluster_indx2 = genome_lookup[genome2]
-					genome_clusters[cluster_indx1].merge(genome_clusters[cluster_indx2], genome1, genome2, d)
+					genome_clusters[cluster_indx1].merge(genome_clusters[cluster_indx2], genome1, genome2, d, edge_weighted)
 
 					for genome in genome_clusters[cluster_indx2].genomes:
 						genome_lookup[genome] = cluster_indx1
@@ -185,14 +189,14 @@ def output_clusters(good_clusters, output_path="/dev/stdout"):
 			for gcluster in good_clusters:
 				fh.write(gcluster.fmtout_all())
 
-def build_genome_blocks(dist_path, total_n, critical_n=100, max_d=0.01, end_d=0.000001, range_factor=1.2, cent_meth="degree", output_path=None):
+def build_genome_blocks(dist_path, total_n, critical_n=100, max_d=0.01, end_d=0.000001, range_factor=1.2, cent_meth="degree", edge_weigthed=False, output_path=None):
 	optimal_d = 0
 	optimal_n = 0
 	optimal_clusters = []
 
 	upper_cap = critical_n * range_factor
 
-	genome_clusters, clust_n = search_genome_clusters(dist_path, max_d, cent_meth)
+	genome_clusters, clust_n = search_genome_clusters(dist_path, max_d, cent_meth, edge_weigthed)
 	
 	tag_n = total_n - clust_n + len(genome_clusters)
 
@@ -216,7 +220,7 @@ def build_genome_blocks(dist_path, total_n, critical_n=100, max_d=0.01, end_d=0.
 		while min_d >= end_d and tag_n < critical_n:
 			min_d = min_d / 10
 
-			genome_clusters, clust_n = search_genome_clusters(dist_path, min_d, cent_meth)
+			genome_clusters, clust_n = search_genome_clusters(dist_path, min_d, cent_meth, edge_weigthed)
 			tag_n = total_n - clust_n + len(genome_clusters)
 
 			print("\t{}: {} tag genomes".format(min_d, tag_n))
@@ -242,7 +246,7 @@ def build_genome_blocks(dist_path, total_n, critical_n=100, max_d=0.01, end_d=0.
 			while delta_d > 0.0000001 and (tag_n > upper_cap or tag_n < critical_n):
 				cur_d = (left_d + right_d) / 2
 
-				genome_clusters, clust_n = search_genome_clusters(dist_path, cur_d, cent_meth)
+				genome_clusters, clust_n = search_genome_clusters(dist_path, cur_d, cent_meth, edge_weigthed)
 				tag_n = total_n - clust_n + len(genome_clusters)
 
 				if tag_n > mid_point:

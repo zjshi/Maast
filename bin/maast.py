@@ -116,6 +116,8 @@ Choose method to rank genomes by centrality in a genome cluster
     betweenness: betweenness centrality
     load: load centrality
 	*for method details, see https://networkx.org/documentation/stable/reference/algorithms/centrality.html""")
+		prep.add_argument('--edge-weighted', action='store_true', default=False,
+			help="""By default, Maast with binarize the edges (convert non-zero distance values to 1) for tag genome picking.\n If toggled on, Maast will use distance values as weights for tag genome picking. (default=False)""")
 		prep.add_argument('--centroid-distance', dest='cent_dist_type', default='L1',
 			choices=['L1', 'L2', 'Linf'],
 			help="""
@@ -618,7 +620,7 @@ def id_clusters(args):
 
 	optimal_clusters, optimal_d, optimal_n = [], None, None
 	while s_cut <= args['precut']:
-		optimal_clusters, optimal_d, optimal_n, firstcut_exit = id_genome_clusters.build_genome_blocks(dist_path, total_n, critical_n, s_cut, e_cut, r_fac, args['centrality_method'])
+		optimal_clusters, optimal_d, optimal_n, firstcut_exit = id_genome_clusters.build_genome_blocks(dist_path, total_n, critical_n, s_cut, e_cut, r_fac, args['centrality_method'], args['edge_weigthed'])
 		if firstcut_exit is True:
 			s_cut = s_cut + 0.01
 		else:
