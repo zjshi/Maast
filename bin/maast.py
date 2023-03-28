@@ -21,7 +21,7 @@ def get_data_type():
 		cmd = 'maast '
 		print('usage: %s <module> [options]' % cmd)
 		print('')
-		print("version: 0.1.0")
+		print("version: 1.0.7")
 		print('')
 		print('description: identify and genotype core-genome snps from <module>')
 		print('')
