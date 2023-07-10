@@ -3,7 +3,7 @@
 Version()
 {
    # Display version 
-   echo "Maast version 1.0.7"
+   echo "Maast version 1.0.8"
 }
 
 # automatic path exporting

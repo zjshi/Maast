@@ -21,7 +21,7 @@ def get_data_type():
 		cmd = 'maast '
 		print('usage: %s <module> [options]' % cmd)
 		print('')
-		print("version: 1.0.7")
+		print("version: 1.0.8")
 		print('')
 		print('description: identify and genotype core-genome snps from <module>')
 		print('')
@@ -620,7 +620,7 @@ def id_clusters(args):
 
 	optimal_clusters, optimal_d, optimal_n = [], None, None
 	while s_cut <= args['precut']:
-		optimal_clusters, optimal_d, optimal_n, firstcut_exit = id_genome_clusters.build_genome_blocks(dist_path, total_n, critical_n, s_cut, e_cut, r_fac, args['centrality_method'], args['edge_weigthed'])
+		optimal_clusters, optimal_d, optimal_n, firstcut_exit = id_genome_clusters.build_genome_blocks(dist_path, total_n, critical_n, s_cut, e_cut, r_fac, args['centrality_method'], args['edge_weighted'])
 		if firstcut_exit is True:
 			s_cut = s_cut + 0.01
 		else:
