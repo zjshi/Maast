@@ -39,7 +39,7 @@ The publication of Maast is in preparation. Please cite this GitHub repo as alte
 ## Installation
 
 <b>Python requirement</b>
-* Python3 (>=3.6.9)
+* Python3 (>=3.9.6)
 
 <b>Required Python libraries</b>
 * [NumPy] (https://numpy.org/install/) (>=1.19.5)
