@@ -102,9 +102,9 @@ Maast requires a C++ compiler that is compatible with C++ 11 standards to work p
 
 ## How to use 
 
-### Type SNPs from a set of whole genome assemblies and sequencing reads from beginning to end in one single command line
+### Type common SNPs from a set of whole genome assemblies and sequencing reads from beginning to end in one single command line
  
-`maast end_to_end --in-dir /path/to/directory/containing/genomes/reads/or/both --out-dir /path/Maast/output/`
+`maast end_to_end --in-dir /path/to/directory/containing/genomes/reads/or/both --out-dir /path/Maast/output/ --min-prev 0.9 --snp-freq 0.01`
 
 Note:  
 
@@ -117,7 +117,7 @@ The running of end_to_end subcomand is equavalent to the running of genomes, db 
 ### Genotype SNPs step by step
 
 #### Step 1a: Call SNP with a collection of whole genome assemblies
-`maast genomes --fna-dir /path/to/genomes/ --rep-fna /path/to/rep_genome.fna --out-dir /path/Maast/output/`  
+`maast genomes --fna-dir /path/to/genomes/ --out-dir /path/Maast/output/`  
 
 Note:  
 By default, Maast first collapsed redundancy in the input genomes and then call common SNPs from a subset of tag genomes. It also automatically identifies a centroid-genome and use it for the representative genome.
@@ -127,7 +127,7 @@ Upon a successful run, this step will produce several important files that are r
 * core_snps.vcf (SNP catalog)
 * tag_paths.list (Selected tag genomes)
 
-#### Step 1b: Call SNPs from a set of whole genomes without redundancy reduction
+#### Step 1b: Call SNPs from a set of whole genomes with a speficied reference genome without redundancy reduction
 
 `maast genomes --fna-dir /path/to/genomes/ --rep-fna /path/to/rep_genome.fna --out-dir /path/Maast/output/ --skip-centroid --keep-redundancy`  
 
